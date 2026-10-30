@@ -1,0 +1,268 @@
+<p align="center">
+  <a href="https://www.veille.io"><img src="images/banner.png" alt="Email Qualification API by Veille" width="100%"></a>
+</p>
+
+# Email Qualification API
+
+[![Discord](https://img.shields.io/badge/Discord-Join%20the%20community-5865F2?logo=discord&logoColor=white)](https://discord.gg/CFj3ph8aHU) [![Get API key](https://img.shields.io/badge/Veille-Get%20an%20API%20key-111827)](https://app.veille.io/register) [![API docs](https://img.shields.io/badge/Docs-API%20reference-0EA5E9)](https://app.veille.io/openapi) [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
+The **Veille Email Qualification API** goes beyond validation and qualifies an email address for lead scoring and risk assessment.
+
+- **Email Qualification API** — Deep email deliverability verification.
+
+Use it for lead scoring, B2B qualification and trust & safety.
+
+| Endpoint | Request | Credits |
+|---|---|---|
+| [Email Qualification API](#email-qualification-api) | `GET /v1/intelligence/emailq` | 5 |
+
+## Table of contents
+
+- [How it works](#how-it-works)
+- [Email Qualification API](#email-qualification-api)
+- [Code examples in other languages](#code-examples-in-other-languages)
+- [Use cases](#use-cases)
+- [Why Veille?](#why-veille)
+- [FAQ](#faq)
+- [Related repositories](#related-repositories)
+- [Support](#support)
+
+## How it works
+
+1. **Create a Veille account** and copy your API key from the [dashboard](https://app.veille.io/register).
+2. **Call `https://api.veille.io`** with the header `x-api-key: YOUR_API_KEY`.
+3. **Use the result** in your app — no infrastructure to run.
+
+```bash
+export VEILLE_API_KEY="your-api-key"
+pip install requests        # Python
+# TypeScript: Node.js 18+ (native fetch), run with `npx tsx file.ts`
+```
+
+## Email Qualification API
+
+Deep email deliverability verification. Performs full Email Validation plus SMTP inbox check, catch-all detection, and returns a qualification verdict (valid, invalid, risky, disposable, unknown).
+
+`GET https://api.veille.io/v1/intelligence/emailq` · **5 credits per request** · [API reference](https://app.veille.io/openapi)
+
+### Request parameters
+
+| Parameter | In | Type | Required | Description |
+|---|---|---|---|---|
+| `query` | query | string | ✅ | The email address to qualify (e.g. `john@example.com`). Automatically normalized to lowercase. |
+
+### Python example
+
+```python
+import os
+
+import requests
+
+API_KEY = os.environ["VEILLE_API_KEY"]
+HEADERS = {"x-api-key": API_KEY}
+
+response = requests.get(
+    "https://api.veille.io/v1/intelligence/emailq",
+    headers=HEADERS,
+    params={
+        "query": "jane.doe@example.com",
+    },
+    timeout=120,
+)
+response.raise_for_status()
+
+data = response.json()
+print(data)
+```
+
+### TypeScript example
+
+```typescript
+type EmailQualificationApi = {
+  dns?: {
+    mx?: boolean;
+    spf?: string;
+    dmarc?: string;
+    spf_valid?: boolean;
+    mx_records?: {
+      hostname?: string;
+      priority?: number;
+    }[];
+    dmarc_valid?: boolean;
+    mx_providers?: {
+      slug?: string;
+      type?: string;
+      grade?: string;
+    }[];
+  };
+  email?: string;
+  domain?: string;
+  is_alias?: boolean;
+  education?: boolean;
+  role_type?: string;
+  disposable?: boolean;
+  risk_score?: number;
+  smtp_valid?: boolean;
+  did_you_mean?: unknown;
+  has_gravatar?: boolean;
+  relay_domain?: boolean;
+  role_account?: boolean;
+  public_domain?: boolean;
+  qualification?: string;
+  normalized_email?: string;
+};
+
+const headers = { "x-api-key": process.env.VEILLE_API_KEY!, "Content-Type": "application/json" };
+
+const params = new URLSearchParams({
+  "query": "jane.doe@example.com",
+});
+
+const response = await fetch(`https://api.veille.io/v1/intelligence/emailq?${params}`, { headers });
+if (!response.ok) throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+
+const data = (await response.json()) as EmailQualificationApi;
+console.log(data);
+```
+
+### Output example
+
+Example response from the API reference, abridged.
+
+```json
+{
+  "dns": {
+    "mx": true,
+    "spf": "v=spf1 include:spf.protection.outlook.com -all",
+    "dmarc": "v=DMARC1; p=reject; rua=mailto:dmarc@airbus.com",
+    "spf_valid": true,
+    "mx_records": [
+      {
+        "hostname": "airbus-com.mail.protection.outlook.com",
+        "priority": 10
+      }
+    ],
+    "dmarc_valid": true,
+    "mx_providers": [
+      {
+        "slug": "microsoft",
+        "type": "mailbox",
+        "grade": "professional"
+      }
+    ]
+  },
+  "email": "example",
+  "domain": "airbus.com",
+  "is_alias": false,
+  "education": false,
+  "role_type": "contact",
+  "disposable": false,
+  "risk_score": 10,
+  "smtp_valid": true,
+  "did_you_mean": null,
+  "has_gravatar": false,
+  "relay_domain": false,
+  "role_account": true,
+  "public_domain": false,
+  "qualification": "valid",
+  "normalized_email": "contact@airbus.com"
+}
+```
+
+### Response fields
+
+| Field | Type | Description |
+|---|---|---|
+| `dns` | object |  |
+| `dns.mx` | boolean |  |
+| `dns.spf` | string |  |
+| `dns.dmarc` | string |  |
+| `dns.spf_valid` | boolean |  |
+| `dns.mx_records[]` | object[] |  |
+| `dns.dmarc_valid` | boolean |  |
+| `dns.mx_providers[]` | object[] |  |
+| `email` | string |  |
+| `domain` | string |  |
+| `is_alias` | boolean |  |
+| `education` | boolean |  |
+| `role_type` | string |  |
+| `disposable` | boolean |  |
+| `risk_score` | integer |  |
+| `smtp_valid` | boolean |  |
+| `did_you_mean` | object |  |
+| `has_gravatar` | boolean |  |
+| `relay_domain` | boolean |  |
+| `role_account` | boolean |  |
+| `public_domain` | boolean |  |
+| `qualification` | string |  |
+| `normalized_email` | string |  |
+
+## Code examples in other languages
+
+Ready-to-run examples live in [`examples/`](examples); each reads your key from `VEILLE_API_KEY`.
+
+| Language | `intelligence-emailq` |
+|---|---|
+| cURL (Bash) | [intelligence_emailq.sh](examples/curl/intelligence_emailq.sh) |
+| PHP | [intelligence_emailq.php](examples/php/intelligence_emailq.php) |
+| C# | [IntelligenceEmailq.cs](examples/csharp/IntelligenceEmailq.cs) |
+| Go | [intelligence_emailq.go](examples/go/intelligence_emailq.go) |
+| Java | [IntelligenceEmailqExample.java](examples/java/IntelligenceEmailqExample.java) |
+| Ruby | [intelligence_emailq.rb](examples/ruby/intelligence_emailq.rb) |
+| Node.js | [intelligence_emailq.mjs](examples/nodejs/intelligence_emailq.mjs) |
+
+## Use cases
+
+- **Lead scoring** — Prioritise professional sign-ups.
+- **Trust & safety** — Flag risky accounts early.
+
+## Why Veille?
+
+- **Stop fake sign-ups** — validate emails and domains before creating accounts.
+- **Block abuse** — check IP reputation to stop bots and automated attacks.
+- **Clean billing data** — validate VAT numbers and IBANs, get exchange rates.
+- **Fast** — designed to run inline in sign-up and checkout flows.
+- **Copy-paste examples** — Python and TypeScript in each README, 7 more languages in `examples/`.
+
+## FAQ
+
+### How do I authenticate?
+
+Create an account on [Veille](https://app.veille.io/register), copy your API key and send it in the `x-api-key` header of every request to `https://api.veille.io`.
+
+### How much does a request cost?
+
+Credits per call: `/v1/intelligence/emailq` **5**. See [Veille pricing](https://www.veille.io/pricing).
+
+### Which languages are supported?
+
+Any language that can make an HTTP request. This README shows Python and TypeScript; the [`examples/`](examples) folder contains cURL, PHP, C#, Go, Java, Ruby and Node.js.
+
+## Related repositories
+
+- [Email Validation API](https://github.com/veilleio/email-validation-api)
+- [Domain Validation API](https://github.com/veilleio/domain-validation-api)
+- [IP Reputation API](https://github.com/veilleio/ip-reputation-api)
+- [VAT Validation API](https://github.com/veilleio/vat-validation-api)
+- [IBAN Validation API](https://github.com/veilleio/iban-validation-api)
+- [Exchange Rates API](https://github.com/veilleio/exchange-rates-api)
+- [All Veille repositories](https://github.com/veilleio)
+
+## Support
+
+- 💬 Join the [Discord](https://discord.gg/CFj3ph8aHU) to ask questions and share what you build.
+- 📚 Read the [API reference](https://app.veille.io/openapi).
+- 🔑 [Get your API key](https://app.veille.io/register).
+
+---
+
+<p align="center">
+  <a href="https://www.veille.io">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="images/logo-dark.svg">
+      <img src="images/logo.svg" alt="Veille" height="28">
+    </picture>
+  </a>
+  <br>
+  <sub>Built by <a href="https://www.veille.io">Veille</a>. Examples are released under the MIT license.</sub>
+</p>
